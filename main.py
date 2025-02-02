@@ -23,6 +23,7 @@ HEADERS = {
 connection = sqlite3.connect('data.db')
 
 
+# Changing functions to Methods, organised in Classes (Objects)
 class Event:
     def scrape(self, url):
         # Scrape the page source from a URL
@@ -38,12 +39,13 @@ class Event:
         return value
 
 
-def send_email(message):
-    with smtplib.SMTP_SSL(HOST, PORT, context=MY_CONTEXT) as server:
-        server.login(SENDER, PASSWORD)
-        server.sendmail(SENDER, RECEIVER, message)
+class Email:
+    def send(self, message):
+        with smtplib.SMTP_SSL(HOST, PORT, context=MY_CONTEXT) as server:
+            server.login(SENDER, PASSWORD)
+            server.sendmail(SENDER, RECEIVER, message)
+        print("Mail was sent")
 
-    print("Mail was sent")
 
 def store(extracted):
     # Stores the event in the database
@@ -66,14 +68,17 @@ def read(extracted):
 
 if __name__ == '__main__':
     while True:
-        scraped = scrape(URL)
-        extracted = extract(scraped)
+        # Create an instance of an event
+        event = Event()
+        scraped = event.scrape(URL)
+        extracted = event.extract(scraped)
         print(extracted)
 
         if extracted != "No upcoming tours":
             row = read(extracted)
             if not row:
                 store(extracted)
-                send_email(message="Hey, a new event was found")
+                email = Email()
+                email.send(message="Hey, a new event was found")
 
         time.sleep(2)
